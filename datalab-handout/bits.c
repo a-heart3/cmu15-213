@@ -143,7 +143,8 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  return 2;
+  return (~(x & y)) & (~(~x & ~y));  
+  //return (~x & y) + (x & ~y);
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -153,7 +154,7 @@ int bitXor(int x, int y) {
  */
 int tmin(void) {
 
-  return 2;
+  return 1 << 31;
 
 }
 //2
@@ -165,7 +166,7 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  return 2;
+  return !((~(x+1)+1) ^ (x+1))&(!!(x+1));
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
@@ -176,7 +177,12 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  return 2;
+  int first = (x >> 16) & x;
+  int second = (first >> 8) & first;
+  int third = (second >> 4) & second;
+  int fourth = (third >> 2) & third;
+  int result = (fourth >> 1) & 0x1;
+  return result;
 }
 /* 
  * negate - return -x 
@@ -186,7 +192,7 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  return ~x+1;
 }
 //3
 /* 
@@ -199,7 +205,14 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  int first = !(x >> 6);
+  int new_x = x & 0x3f;
+  int second = !(new_x >> 4 ^ 0x3);
+  int new2_x = new_x & 0xf;
+  int sign = new2_x >> 3;
+  int third = (!sign) | (sign & (!(new2_x & 0x6)));
+  int result = first & second & third;
+  return result;
 }
 /* 
  * conditional - same as x ? y : z 
@@ -209,7 +222,10 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  int new_x = !!x;
+  int test = ~new_x + 1;
+  int result = ((~test) & z) | (test & y);
+  return result;
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -219,7 +235,15 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  int sub = x + (~y) +1;
+  int sign_x = x >> 31;
+  int sign_y = y >> 31;
+  int isSameSign = !(sign_x ^ sign_y);
+  int test = ~isSameSign + 1;
+  int isZero = !sub;
+  int isLess = (test & !!(sub >> 31)) | ((~test) & (!sign_y));
+  int result = isZero | isLess;
+  return result;
 }
 //4
 /* 
@@ -231,7 +255,13 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+  int first = (x >> 16) | x;
+  int second = (first >> 8) | first;
+  int third = (second >> 4) | second;
+  int fourth = (third >> 2) | third;
+  int fifth = (fourth >> 1) | fourth;
+  int result = (fifth & 0x1) ^ 0x1;
+  return result;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
@@ -246,7 +276,46 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+  int judge_16, judge_8, judge_4, judge_2, judge_1;
+  int is16, is8, is4, is2, is1, is0;
+  int new_x_16, new_x_8, new_x_4, new_x_2, new_x_1;
+  int result = 0;
+
+  int sign = !(x >> 31);
+  int test = ~sign + 1;
+  int new_x = (test & x) | ((~test) & (~x));
+
+  is16 = !!(new_x >> 16);
+  judge_16 = ~is16 + 1;
+  new_x_16 = (judge_16 & new_x >> 16) | ((~judge_16) & new_x);
+  result = result + (judge_16 & 16);
+
+  is8 = !!(new_x_16 >> 8);
+  judge_8 = ~is8 + 1;
+  new_x_8 = (judge_8 & new_x_16 >> 8) | ((~judge_8) & new_x_16);
+  result = result + (judge_8 & 8);
+
+  is4 = !!(new_x_8 >> 4);
+  judge_4 = ~is4 + 1;
+  new_x_4 = (judge_4 & new_x_8 >> 4) | ((~judge_4) & new_x_8);
+  result = result + (judge_4 & 4);
+
+  is2 = !!(new_x_4 >> 2);
+  judge_2 = ~is2 + 1;
+  new_x_2 = (judge_2 & new_x_4 >> 2) | ((~judge_2) & new_x_4);
+  result = result + (judge_2 & 2);
+
+  is1 = (new_x_2 >> 1) & 0x1;
+  judge_1 = ~is1 + 1;
+  new_x_1 = (judge_1 & new_x_2 >> 1) | ((~judge_1) & new_x_2);
+  result = result + (judge_1 & 1);
+
+  is0 = new_x_1 & 0x1;
+  result = result + is0;
+
+  result = result + 1;
+
+  return result;
 }
 //float
 /* 
