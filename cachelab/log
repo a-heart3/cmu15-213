@@ -1,0 +1,27 @@
+csim.c: In function ‘main’:
+csim.c:218:37: error: expected expression before ‘Cache’
+  218 |                         VCacheMatch(Cache *cache, set_address, target);
+      |                                     ^~~~~
+csim.c:218:25: error: too few arguments to function ‘VCacheMatch’
+  218 |                         VCacheMatch(Cache *cache, set_address, target);
+      |                         ^~~~~~~~~~~
+csim.c:131:6: note: declared here
+  131 | void VCacheMatch(Cache *cachem, int set_address, int target)
+      |      ^~~~~~~~~~~
+csim.c:221:36: error: expected expression before ‘Cache’
+  221 |                         CacheMatch(Cache *cache, set_address, target);
+      |                                    ^~~~~
+csim.c:221:25: error: too few arguments to function ‘CacheMatch’
+  221 |                         CacheMatch(Cache *cache, set_address, target);
+      |                         ^~~~~~~~~~
+csim.c:124:6: note: declared here
+  124 | void CacheMatch(Cache *cache, int set_address, int target)
+      |      ^~~~~~~~~~
+csim.c:208:13: error: variable ‘target’ set but not used [-Werror=unused-but-set-variable]
+  208 |         int target;
+      |             ^~~~~~
+csim.c:207:13: error: variable ‘set_address’ set but not used [-Werror=unused-but-set-variable]
+  207 |         int set_address;
+      |             ^~~~~~~~~~~
+cc1: all warnings being treated as errors
+make: *** [Makefile:13: csim] Error 1
