@@ -61,7 +61,6 @@ Cache *CacheInit(int set_numbers, int line_numbers)
 			line->v = 0;
 			line->tag = 0;
 			line->usage_times = 0;
-			printf("111test\n");
 			set->lines[j] = line;
 		}
 		cache->sets[i] = set;
@@ -120,20 +119,106 @@ int Hex2Decimal(char *hex) {
 	return result;
 }
 
-// Cache match use for implement simulator of cache map
-void CacheMatch(Cache *cache, int set_address, int target)
+// Find First empty line position
+int FindFirstEmpty(Set *set, int line_numbers)
 {
-	misses++;
-	hits++;
+	int position = 0;
+	Line *line = NULL;
+	for(position=0; position<line_numbers; position++) {
+		line = set->lines[position];
+		if(line->v == 0) {
+			break;
+		}
+	}
+	
+	return position;
 }
 
-// Cache match use for implement simulation of cache map for option v
-void VCacheMatch(Cache *cachem, int set_address, int target)
+// Find Min use line position
+int FindMax(Set *set, int line_numbers)
 {
-	hits++;
-	evictions++;
+	int max_position = 0;
+	int max_usage = 0;
+	Line *line = set->lines[max_position];
+	max_usage = line->usage_times;
+	for(int i=1; i<line_numbers; i++) {
+		line = set->lines[i];
+		if(line->usage_times > max_usage) {
+			max_position = i;
+			max_usage = line->usage_times;
+		}
+	}
+
+	return max_position;
 }
-				
+
+// Cache match use for implement simulator of cache map
+int CacheMatch(Cache *cache, int set_address, int target, int line_numbers)
+{
+	Set *set = cache->sets[set_address];
+	Line *line = NULL;
+	int is_hits = 0;
+	int is_full = 1;
+	int result = 0;
+	for(int i=0; i<line_numbers; i++) {
+		line = set->lines[i];
+		if(line->v && (line->tag==target)) {
+			is_hits = 1;
+			break;
+		}
+		else if(line->v==0) {
+			is_full = 0;
+		}
+	}	
+	if(is_hits) {
+		hits++;
+		line->usage_times = 0;
+		result = 0;
+	}	
+	else if(is_full==0) {
+		int position = FindFirstEmpty(set, line_numbers);
+		line = set->lines[position];
+		line->v=1;
+		line->tag = target;
+		line->usage_times = 0;
+		misses++;
+		result = 1;
+	}
+
+	else {
+		int position = FindMax(set, line_numbers);
+		line = set->lines[position];
+		line->v = 1;
+		line->tag = target;
+		line->usage_times = 0;
+		misses++;
+		evictions++;
+		result = 2;
+	}		
+	for(int i=0; i<line_numbers; i++) {
+		line = set->lines[i];
+		if(line->v == 1) {
+			line->usage_times++;
+		}
+	}
+	
+	return result;
+}
+
+// Vprint implement the print info of v option
+void Vprint(Cache *cache, int set_address, int target, int line_numbers)
+{
+	int result = CacheMatch(cache, set_address, target, line_numbers);
+	if(result == 0) {
+		printf(" hit");
+	}
+	else if(result == 1) {
+		printf(" miss");
+	}
+	else {
+		printf(" miss eviction");
+	}
+}
 
 int main(int argc, char *argv[])
 {
@@ -162,19 +247,15 @@ int main(int argc, char *argv[])
 			case 's':
 				set_bits = atoi(optarg);
 				set_numbers = Power(2, set_bits);
-				printf("this is a test: %d\n", set_numbers);
 				break;
 			case 'E':
 				line_numbers = atoi(optarg);
-				printf("this is second test: %d\n", line_numbers);
 				break;
 			case 'b':
 				block_bits = atoi(optarg);
-				printf("this is third test: %d\n", block_bits);
 				break;
 			case 't':
 				file_path = optarg;
-				printf("this is the file path: %s\n", file_path);
 				break;
 			default:
 				printf("Error: no such option, please input -h for more information!\n");
@@ -201,27 +282,51 @@ int main(int argc, char *argv[])
 
 	// analyse every lines of the file
 	char arguments[BUFFERMAX]; 
-	char *op;
+	char *op_str;
 	char *memory_address_hex;
 	int memory_address;
 	int set_address;
 	int target;
+	char op;
+	unsigned shift = 0xffffffff;
 	while(fgets(arguments,BUFFERMAX,fp)) {
-		op = strtok(arguments, " ");
+		arguments[strlen(arguments)-1]='\0';
+		printf("%s", arguments);
+		op_str = strtok(arguments, " ");
+		op = op_str[0];
 		memory_address_hex = strtok(NULL, ",");
 		memory_address = Hex2Decimal(memory_address_hex);
 		// use bits of memory_address to match cache
-		set_address = (memory_address >> block_bits) & (1 << set_bits);
+		set_address = (memory_address >> block_bits) & (shift >> (32-set_bits));
 		target = memory_address >> (set_bits + block_bits);
 		// cache match
 		if(exist_v) {
-			VCacheMatch(cache, set_address, target);
+			if(op == 'M') {
+				for(int i=0; i<2; i++) {
+					Vprint(cache, set_address, target, line_numbers);
+				}
+				printf("\n");
+			}
+			else if(op == 'I') {
+				continue;
+			}
+			else {
+					Vprint(cache, set_address, target, line_numbers);
+					printf("\n");
+			}	
 		}
 		else {
-			CacheMatch(cache, set_address, target);
+			if(op == 'M') {
+				CacheMatch(cache, set_address, target, line_numbers);
+				CacheMatch(cache, set_address, target, line_numbers);
+			}
+			else if(op == 'I') {
+				continue;
+			}
+			else {
+				CacheMatch(cache, set_address, target, line_numbers);
+			}
 		}	
-		printf("the memory address is %x\n", memory_address);
-		printf("the op is %s\n", op);
 	}
 
     printSummary(hits, misses, evictions);
