@@ -136,88 +136,323 @@ void transpose_64x64(int M, int N, int A[N][M], int B[M][N])
 	}
 }
 
-void transpose_64x64_v2(int M, int N, int A[N][M], int B[M][N]) 
+void transpose_64x64_v2(int M, int N, int A[N][M], int B[M][N])
 {
 	int turn;
 	int row_start;
 	int column_start;
 	int temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
-	// split matrix to 8x8 matrix
-	for(turn=0; turn<64; turn++) {
+	for(turn = 0; turn < 64; turn++) {
 		row_start = (turn / 8) * 8;
 		column_start = (turn % 8) * 8;
 		for(M=row_start; M<row_start+8; M++) {
 			N = column_start;
-			temp0 = A[M][N]; N = N + 1;
-			temp1 = A[M][N]; N = N + 1;
-			temp2 = A[M][N]; N = N + 1;
-			temp3 = A[M][N]; N = N + 1;
-			temp4 = A[M][N]; N = N + 1;
-			temp5 = A[M][N]; N = N + 1;
-			temp6 = A[M][N]; N = N + 1;
-			temp7 = A[M][N]; N = N + 1;
-			
+			// get one block A
+			temp0 = A[M][N]; N++;
+			temp1 = A[M][N]; N++;
+			temp2 = A[M][N]; N++;
+			temp3 = A[M][N]; N++;
+			temp4 = A[M][N]; N++;
+			temp5 = A[M][N]; N++;
+			temp6 = A[M][N]; N++;
+			temp7 = A[M][N]; 
+			// give the value to B, split two cases, one is row 0-3; another is row 4-7
 			if(M < row_start+4) {
 				N = column_start;
-				B[N][M] = temp0; N = N + 1;
-				B[N][M] = temp1; N = N + 1;
-				B[N][M] = temp2; N = N + 1;
-				B[N][M] = temp3; N = N + 1;
-	
+				B[N][M] = temp0; N++;
+				B[N][M] = temp1; N++;
+				B[N][M] = temp2; N++;
+				B[N][M] = temp3; 
+
 				M = M + 4;
-				N = column_start;
-				B[N][M] = temp4; N = N + 1;
-				B[N][M] = temp5; N = N + 1;
-				B[N][M] = temp6; N = N + 1;
-				B[N][M] = temp7; N = N + 1;
+				B[N][M] = temp7; N--;
+				B[N][M] = temp6; N--;
+				B[N][M] = temp5; N--;
+				B[N][M] = temp4;
+
+				M = M - 4;
 			}
 			else {
+				M = M - 4;
 				N = column_start + 4;
-				B[N][M] = temp0; N = N + 1;
-				B[N][M] = temp1; N = N + 1;
-				B[N][M] = temp2; N = N + 1;
-				B[N][M] = temp3; N = N + 1;
-	
+				B[N][M] = temp0; N++;
+				B[N][M] = temp1; N++;
+				B[N][M] = temp2; N++;
+				B[N][M] = temp3;
+				
 				M = M + 4;
-				N = column_start+4;
-				B[N][M] = temp4; N = N + 1;
-				B[N][M] = temp5; N = N + 1;
-				B[N][M] = temp6; N = N + 1;
-				B[N][M] = temp7; N = N + 1;
-
+				B[N][M] = temp7; N--;
+				B[N][M] = temp6; N--;
+				B[N][M] = temp5; N--;
+				B[N][M] = temp4;
 			}
-			M = M - 4;
 		}
-		// tackle with 8x8, mainly for 4x4 diag
-		// change you shang 4x4 he zuo xia 4x4
-		for(N=column_start; N<column_start+4; N++) {
-			M = row_start;
-			temp0 = B[N][M+4];
-			temp1 = B[N][M+5];
-			temp2 = B[N][M+6];
-			temp3 = B[N][M+7];
 		
-			N = N + 4;
-			temp4 = B[N][M]; M = M + 1;
-			temp5 = B[N][M]; M = M + 1;
-			temp6 = B[N][M]; M = M + 1;
-			temp7 = B[N][M]; 
+		for(N=column_start; N < column_start+4; N++) {
+			M = row_start;
+			temp4 = B[N+4][M]; M = M + 1;
+			temp5 = B[N+4][M]; M = M + 1;
+			temp6 = B[N+4][M]; M = M + 1;
+			temp7 = B[N+4][M]; M = M + 1; 
 
-			B[N][M] = temp7; M = M - 1;
-			B[N][M] = temp6; M = M - 1;
-			B[N][M] = temp5; M = M - 1;
-			B[N][M] = temp4; 
-
-			B[N][M+4] = temp0;
-			B[N][M+5] = temp1;
-			B[N][M+6] = temp2;
-			B[N][M+7] = temp3;
+			temp0 = B[N][M]; M = M + 1;
+			temp1 = B[N][M]; M = M + 1;
+			temp2 = B[N][M]; M = M + 1;
+			temp3 = B[N][M]; 
 			
-			N = N - 4;
-
+			M = M - 3;
+			B[N][M] = temp4; M = M + 1;
+			B[N][M] = temp5; M = M + 1;
+			B[N][M] = temp6; M = M + 1;
+			B[N][M] = temp7; 
+			
+			M = M - 7;
+			B[N+4][M] = temp0; M = M + 1;
+			B[N+4][M] = temp1; M = M + 1;
+			B[N+4][M] = temp2; M = M + 1;
+			B[N+4][M] = temp3; M = M + 1;
 		}
 	}
 }
+
+void transpose_64x64_v4(int M, int N, int A[N][M], int B[M][N])
+{
+	int turn;
+	int row_start;
+	int column_start;
+	int temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
+	for(turn = 0; turn < 64; turn++) {
+		row_start = (turn / 8) * 8;
+		column_start = (turn % 8) * 8;
+		for(M=row_start; M<row_start+4; M++) {
+			N = column_start;
+			// get one block A
+			temp0 = A[M][N]; N++;
+			temp1 = A[M][N]; N++;
+			temp2 = A[M][N]; N++;
+			temp3 = A[M][N]; N++;
+			temp4 = A[M][N]; N++;
+			temp5 = A[M][N]; N++;
+			temp6 = A[M][N]; N++;
+			temp7 = A[M][N]; 
+			// give the value to B, split two cases, one is row 0-3; another is row 4-7
+			N = column_start;
+			B[N][M] = temp0; N++;
+			B[N][M] = temp1; N++;
+			B[N][M] = temp2; N++;
+			B[N][M] = temp3; 
+
+			M = M + 4;
+			B[N][M] = temp7; N--;
+			B[N][M] = temp6; N--;
+			B[N][M] = temp5; N--;
+			B[N][M] = temp4;
+
+			M = M - 4;
+		}
+		for(N=column_start; N<column_start+4; N++) {
+			M = row_start + 4;
+			temp0 = A[M][N]; M++;
+			temp1 = A[M][N]; M++;
+			temp2 = A[M][N]; M++;
+			temp3 = A[M][N];
+
+			temp7 = B[N][M]; M--;
+			temp6 = B[N][M]; M--;
+			temp5 = B[N][M]; M--;
+			temp4 = B[N][M];
+
+			B[N][M] = temp0; M++;
+			B[N][M] = temp1; M++;
+			B[N][M] = temp2; M++;
+			B[N][M] = temp3;
+
+			M = M - 7;
+			B[N+4][M++] = temp4;
+			B[N+4][M++] = temp5;
+			B[N+4][M++] = temp6;
+			B[N+4][M] = temp7;
+		}
+		for(M=row_start+4; M<row_start+8; M++) {
+			N = column_start+4;
+			temp0 = A[M][N++];
+			temp1 = A[M][N++];
+			temp2 = A[M][N++];
+			temp3 = A[M][N];
+
+			B[N][M] = temp3; N--;
+			B[N][M] = temp2; N--;
+			B[N][M] = temp1; N--;
+			B[N][M] = temp0;
+		}
+
+	}
+}
+
+
+void transpose_64x64_v3(int M, int N, int A[N][M], int B[M][N])
+{
+	int turn;
+	int row_start;
+	int column_start;
+	int temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
+	for(turn = 0; turn < 64; turn++) {
+		row_start = (turn / 8) * 8;
+		column_start = (turn % 8) * 8;
+		for(M=row_start; M<row_start+8; M++) {
+			N = column_start;
+			// get one block A
+			temp0 = A[M][N]; N++;
+			temp1 = A[M][N]; N++;
+			temp2 = A[M][N]; N++;
+			temp3 = A[M][N]; N++;
+			temp4 = A[M][N]; N++;
+			temp5 = A[M][N]; N++;
+			temp6 = A[M][N]; N++;
+			temp7 = A[M][N]; 
+			// give the value to B, split two cases, one is row 0-3; another is row 4-7
+			if(M < row_start+4) {
+				N = column_start;
+				B[N][M] = temp0; N++;
+				B[N][M] = temp1; N++;
+				B[N][M] = temp2; N++;
+				B[N][M] = temp3; 
+
+				M = M + 4;
+				B[N][M] = temp7; N--;
+				B[N][M] = temp6; N--;
+				B[N][M] = temp5; N--;
+				B[N][M] = temp4;
+
+				M = M - 4;
+			}
+			else {
+				M = M - 4;
+				N = column_start + 4;
+				B[N][M] = temp0; N++;
+				B[N][M] = temp1; N++;
+				B[N][M] = temp2; N++;
+				B[N][M] = temp3;
+				
+				M = M + 4;
+				B[N][M] = temp7; N--;
+				B[N][M] = temp6; N--;
+				B[N][M] = temp5; N--;
+				B[N][M] = temp4;
+			}
+		}
+		
+		for(N=column_start; N < column_start+4; N++) {
+			M = row_start;
+			temp0 = B[N+4][M]; M = M + 1;
+			temp1 = B[N+4][M]; M = M + 1;
+			temp2 = B[N+4][M]; M = M + 1;
+			temp3 = B[N+4][M]; M = M + 1;
+
+			temp4 = B[N][M]; B[N][M] = temp0; M = M + 1;
+			temp5 = B[N][M]; B[N][M] = temp1; M = M + 1;
+			temp6 = B[N][M]; B[N][M] = temp2; M = M + 1;
+			temp7 = B[N][M]; B[N][M] = temp3; 
+
+			M = row_start;
+			B[N+4][M] = temp4; M = M + 1;	
+			B[N+4][M] = temp5; M = M + 1;	
+			B[N+4][M] = temp6; M = M + 1;	
+			B[N+4][M] = temp7; 
+		}
+	}
+}
+
+
+void transpose_61x67(int M, int N, int A[N][M], int B[M][N])
+{
+	int turn;
+	int row_start, column_start;
+	int temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7;
+	
+	for(turn = 0; turn < 56; turn++) {
+		row_start = (turn / 7) * 8;
+		column_start = (turn % 7) * 8;
+		for(M=row_start; M<row_start+8; M++) {
+			N = column_start;
+			temp0 = A[M][N]; N++;
+			temp1 = A[M][N]; N++;
+			temp2 = A[M][N]; N++;
+			temp3 = A[M][N]; N++;
+			temp4 = A[M][N]; N++;
+			temp5 = A[M][N]; N++;
+			temp6 = A[M][N]; N++;
+			temp7 = A[M][N]; 
+			
+			B[N][M] = temp7; N--;
+			B[N][M] = temp6; N--;
+			B[N][M] = temp5; N--;
+			B[N][M] = temp4; N--;
+			B[N][M] = temp3; N--;
+			B[N][M] = temp2; N--;
+			B[N][M] = temp1; N--;
+			B[N][M] = temp0; 
+		}
+	}
+	for(turn = 0; turn < 8; turn++) {
+		row_start = (turn % 8) * 8;
+		column_start = 56;
+		for(M = row_start; M<row_start+8; M++) {
+			N = column_start;
+			temp0 = A[M][N]; N++;
+			temp1 = A[M][N]; N++;
+			temp2 = A[M][N]; N++;
+			temp3 = A[M][N]; N++;
+			temp4 = A[M][N]; 
+			
+			B[N][M] = temp4; N--;
+			B[N][M] = temp3; N--;
+			B[N][M] = temp2; N--;
+			B[N][M] = temp1; N--;
+			B[N][M] = temp0; 
+		}
+	}
+	for(turn = 0; turn < 7; turn++) {
+		row_start = 64;
+		column_start = (turn % 7) * 8;
+		for(M = row_start; M < row_start+3; M++) {
+			N = column_start;
+			temp0 = A[M][N]; N++;
+			temp1 = A[M][N]; N++;
+			temp2 = A[M][N]; N++;
+ 			temp3 = A[M][N]; N++;
+			temp4 = A[M][N]; N++;
+			temp5 = A[M][N]; N++;
+			temp6 = A[M][N]; N++;
+			temp7 = A[M][N]; 
+
+			
+			B[N][M] = temp7; N--;
+			B[N][M] = temp6; N--;
+			B[N][M] = temp5; N--;
+			B[N][M] = temp4; N--;
+			B[N][M] = temp3; N--;
+			B[N][M] = temp2; N--;
+			B[N][M] = temp1; N--;
+			B[N][M] = temp0; 
+
+		}
+	}
+	for(M=64; M < 67; M++) {
+		N = 56;
+		temp0 = A[M][N]; N++;
+		temp1 = A[M][N]; N++;
+		temp2 = A[M][N]; N++;
+		temp3 = A[M][N]; N++;
+		temp4 = A[M][N]; 
+			
+		B[N][M] = temp4; N--;
+		B[N][M] = temp3; N--;
+		B[N][M] = temp2; N--;
+		B[N][M] = temp1; N--;
+		B[N][M] = temp0; N--;
+	}	
+}	
 
 
 char transpose_submit_desc[] = "Transpose submission";
@@ -227,7 +462,10 @@ void transpose_submit(int M, int N, int A[N][M], int B[M][N])
 		transpose_32x32(M, N, A, B);
 	}
 	else if((M==64) && (N==64)) {
-		transpose_64x64_v2(M, N, A, B);
+		transpose_64x64_v4(M, N, A, B);
+	}
+	else {
+		transpose_61x67(M, N, A, B);
 	}
 }
 
