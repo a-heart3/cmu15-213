@@ -165,6 +165,15 @@ int main(int argc, char **argv)
 */
 void eval(char *cmdline) 
 {
+	char *argv[128];
+	int bg = parseline(cmdline, argv);
+	// judge whether the cmd is builtin_cmd
+	int is_builtin = builtin_cmd(argv);
+
+	// if not builtin, exec
+	if(!is_builtin){
+		;
+	}
     return;
 }
 
@@ -231,7 +240,13 @@ int parseline(const char *cmdline, char **argv)
  */
 int builtin_cmd(char **argv) 
 {
-    return 0;     /* not a builtin command */
+	char *cmd = argv[0];
+	int is_builtin = 0;
+	if (!strcmp(cmd, "quit")) {
+		is_builtin = 1;
+		exit(0);
+	}
+    return is_builtin;     /* not a builtin command */
 }
 
 /* 
